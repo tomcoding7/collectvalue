@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String @id @default(cuid())
+  email       String @unique
+  username    String @unique
+  ebayToken   String?
+  collections Collection[]
+  ebayListings EbayListing[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Collection {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  privacy     String @default("private")
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+  items       Item[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Item {
+  id            String @id @default(cuid())
+  name          String
+  description   String?
+  purchasePrice Float?
+  currentValue  Float?
+  condition     String?
+  collectionId  String
+  collection    Collection @relation(fields: [collectionId], references: [id])
+  photos        Photo[]
+  ebayListing   EbayListing?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Photo {
+  id        String @id @default(cuid())
+  url       String
+  isPrimary Boolean @default(false)
+  itemId    String
+  item      Item @relation(fields: [itemId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model EbayListing {
+  id         String @id @default(cuid())
+  listingId  String @unique
+  title      String
+  price      Float
+  status     String
+  watchers   Int @default(0)
+  itemId     String? @unique
+  item       Item? @relation(fields: [itemId], references: [id])
+  userId     String
+  user       User @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+} 
